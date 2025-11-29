@@ -97,7 +97,22 @@ def main():
                           momentum=MOMENTUM, weight_decay=WEIGHT_DECAY)
     
     # Scheduler: Reduz o LR quando a loss para de cair (Platô)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
+    # Habilita verbose no scheduler dependendo da versão do CUDA (ex.: '11.7' >= '1.12')
+    cuda_ver = torch.version.cuda  # string ou None
+    verbose_scheduler = False
+    if cuda_ver is not None:
+        try:
+            parts = cuda_ver.split('.')
+            major = int(parts[0]) if parts[0].isdigit() else 0
+            minor = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+            if (major, minor) >= (1, 12):
+                verbose_scheduler = True
+        except Exception:
+            verbose_scheduler = False
+
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='min', factor=0.1, patience=3, verbose=verbose_scheduler
+    )
 
     # 4. Loop Principal
     best_acc = 0.0
