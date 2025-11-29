@@ -47,4 +47,34 @@ def create_dataloaders(batch_size = 64, data_dir='data/downloaded'):
     test_dataset = datasets.CIFAR10(root=data_dir, train=False,
                                     download=True, transform=test_transform)
     
-    # Dividir 
+    # Dividir treino (45k) e Validação (5k)
+    train_size = int(0.9 * len(train_dataset_full))
+    val_size = len(train_dataset_full) - train_size
+
+    train_subset, val_subset = random_split(train_dataset_full, [train_size, val_size])
+
+    # Criar Loaders
+
+    train_loader = DataLoader(train_subset, batch_size=batch_size,
+                               shuffle=True, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    
+    val_loader = DataLoader(val_subset, batch_size=batch_size,
+                               shuffle=False, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, 
+                               shuffle=False, num_workers=NUM_WORKERS, pin_memory=PIN_MEMORY)
+    
+    classes = train_dataset_full.classes
+
+    return train_loader, val_loader, train_loader, classes
+
+if __name__ == "__main__":
+    
+    # Testar a criação dos dataloaders
+    tl, vl, tsl, classes = create_dataloaders()
+
+
+    images, labels = next(iter(tl))
+
+    print(f"Shape do batch de imagens: {images.shape} (Batch Size, Canais, Altura, Largura)")
+    print(f"Shape do batch de labels: {labels.shape} (Batch Size)")
